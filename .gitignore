@@ -1,0 +1,21 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/fe/Order.Web/bin/Debug/net8.0
+/fe/Order.Web/obj
+/src/HttpClientProcess/bin/Debug/net8.0
+/src/HttpClientProcess/obj
+/src/Orders.Api/bin/Debug/net8.0
+/src/Orders.Api/obj
+/src/Orders.Repository/bin/Debug/net8.0
+/src/Orders.Repository/obj
+/src/Orders.Services/bin/Debug/net8.0
+/src/Orders.Services/obj
+/src/PaymentRuleService/bin/Debug/net8.0
+/src/PaymentRuleService/obj
+/test/Orders.Test/bin/Debug/net8.0
+/test/Orders.Test/obj
+/test/PaymentOrders.Tests/obj
+/test/Orders.Test/bin/Release/net8.0
