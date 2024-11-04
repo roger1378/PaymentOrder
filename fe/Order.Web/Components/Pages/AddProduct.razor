@@ -1,0 +1,41 @@
+﻿@page "/addproduct"
+@inject ApiService apiService
+@inject NavigationManager _navigationManager
+@using BlazorProducts.Web.Services
+@using Order.Web.Model
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<h3>Add Product</h3>
+
+<EditForm FormName="UNewProduct" Model="newPoduct" OnValidSubmit="CreateProduct">
+    <div>
+        <label for="name">Name:</label>
+        <InputText id="name" @bind-Value="newPoduct.Name" class="form-control" />
+    </div>
+    <div>
+        <label for="price">Price:</label>
+        <InputNumber id="unitPrice" @bind-Value="newPoduct.UnitPrice" class="form-control" />
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <InputTextArea id="details" @bind-Value="newPoduct.Details" class="form-control" />
+    </div>
+    <div>
+        <label for="description">Status:</label>
+        <InputTextArea id="status" @bind-Value="newPoduct.Status" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Add product</button>
+</EditForm>
+
+@code {
+    private Product newPoduct = new Product();
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private async Task CreateProduct()
+    {
+        newPoduct = await apiService.AddProductAsync(newPoduct);
+        _navigationManager.NavigateTo("/products");
+    }
+}

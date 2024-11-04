@@ -1,0 +1,53 @@
+﻿@page "/editpoduct/{id}"
+@inject ApiService apiService
+@inject NavigationManager _navigationManager
+@using BlazorProducts.Web.Services
+@using Order.Web.Model
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<h3>Edit Product</h3>
+
+@if (editPoduct == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm FormName="UpdateProduct" Model="editPoduct" OnValidSubmit="UpdateProduct">
+        <div>
+            <label for="name">Name:</label>
+            <InputText id="name" @bind-Value="editPoduct.Name" class="form-control" />
+        </div>
+        <div>
+            <label for="price">Price:</label>
+            <InputNumber id="unitPrice" @bind-Value="editPoduct.UnitPrice" class="form-control" />
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <InputTextArea id="details" @bind-Value="editPoduct.Details" class="form-control" />
+        </div>
+        <div>
+            <label for="description">Status:</label>
+            <InputTextArea id="status" @bind-Value="editPoduct.Status" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+    </EditForm>
+}
+
+@code {
+    private Product editPoduct;
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        editPoduct = await apiService.GetProductByIdAsync(Id);
+    }
+
+    private async Task UpdateProduct()
+    {
+        editPoduct = await apiService.UpdateProductAsync(editPoduct);
+        _navigationManager.NavigateTo("/products");
+    }
+}

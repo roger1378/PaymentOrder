@@ -1,0 +1,91 @@
+﻿@page "/orders"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using BlazorProducts.Web.Services
+@using Order.Web.Model
+@using static System.Net.WebRequestMethods
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ApiService apiService
+@attribute [StreamRendering]
+
+<PageTitle>Orders</PageTitle>
+
+<h1>Orders</h1>
+
+@if (paymentOrders == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (paymentOrders.Count == 0)
+{
+    <h1 class="btn btn-warning">No orderss available</h1>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Provider name</th>
+                <th>Products</th>
+                <th>Fees</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in paymentOrders)
+            {
+                <tr>
+                    <td>@order.Method</td>
+                    <td>@order.Amount</td>
+                    <td>@order.Status</td>
+                    <td>@order.ProviderName</td>
+                    <td>
+                        <ul>
+                            @foreach (var product in order.Products)
+                            {
+                                <li>Name: @product.Name <br /> Price: @product.UnitPrice</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            @foreach (var fee in order.Fees)
+                            {
+                                <li>Name: @fee.Name <br /> Amount: @fee.Amount</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary m-1" @onclick="() => CancelOrder(order.OrderId)">Cancel</button>
+                        <button class="btn btn-danger m-1" @onclick="() => PayOrder(order.OrderId)">Pay</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<PaymentOrder> paymentOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        paymentOrders = await apiService.GetPaymentOrdersAsync();
+    }
+
+    private async Task CancelOrder(string id)
+    {
+        await apiService.CancelOrderAsync(id);
+        paymentOrders = await apiService.GetPaymentOrdersAsync();
+    }
+
+    private async Task PayOrder(string id)
+    {
+        await apiService.PayOrderAsync(id);
+        paymentOrders = await apiService.GetPaymentOrdersAsync();
+    }
+}

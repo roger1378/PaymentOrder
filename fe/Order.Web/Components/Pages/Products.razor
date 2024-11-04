@@ -1,0 +1,102 @@
+﻿@page "/products"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using BlazorProducts.Web.Services
+@using Order.Web.Model
+@using static System.Net.WebRequestMethods
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject ApiService apiService
+@attribute [StreamRendering]
+
+<PageTitle>Products</PageTitle>
+
+<h1>Products</h1>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if(products.Count == 0)
+{
+    <h1 class="btn btn-warning">No products available</h1>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td><input type="checkbox" @onclick="() => SelectProduct(product.Id)" /></td>
+                    <td>@product.Id</td>
+                    <td>@product.Name</td>
+                    <td>@product.UnitPrice</td>
+                    <td>@product.Details</td>
+                    <td>@product.Status</td>
+                    <td>
+                        <button class="btn btn-primary m-1" @onclick="() => EditProduct(product.Id)">Edit</button>
+                        <button class="btn btn-danger m-1" @onclick="() => DeleteProduct(product.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<button class="d-inline btn btn-primary" @onclick="() => CreateProduct()">Add product</button>
+<button class="d-inline btn btn-primary" @onclick="() => CreateOrder()">Create order</button>
+
+@code {
+    List<Product> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await apiService.GetProductsAsync();
+    }
+
+    private void CreateProduct()
+    {
+        NavigationManager.NavigateTo("/addproduct");
+    }
+
+    private void EditProduct(string id)
+    {
+        NavigationManager.NavigateTo($"/editpoduct/{id}");
+    }
+
+    private async Task DeleteProduct(string id)
+    {
+        await apiService.DeleteProductAsync(id);
+        products = await apiService.GetProductsAsync();
+    }
+
+    private void CreateOrder()
+    {
+        var queryString = string.Join("&", selectedProducts.Select(id => $"ids={id}"));
+        NavigationManager.NavigateTo($"/createorder?{queryString}");
+    }
+
+    List<string> selectedProducts = new List<string>();
+    private void SelectProduct(string id)
+    {
+        if (selectedProducts.Contains(id))
+        {
+            selectedProducts.Remove(id);
+        }
+        else
+        {
+            selectedProducts.Add(new string(id));
+        }
+    }
+}

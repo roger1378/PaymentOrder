@@ -1,0 +1,105 @@
+﻿@page "/createOrder"
+@inject ApiService apiService
+@inject NavigationManager _navigationManager
+@using BlazorProducts.Web.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using Order.Web.Model
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<h3>Create order</h3>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (products.Count == 0)
+{
+    <h1 class="btn btn-warning">No products available</h1>
+}
+else
+{
+    <h4>Products</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.UnitPrice</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <h4>Payment method</h4>
+    @foreach (var paymentType in paymentTypes)
+    {
+        <div>
+            <input type="radio" id="@paymentType.Value" name="paymentMethod" value="@paymentType.Value" @onchange="() => OnSelectedOptionChanged(paymentType.Value)" />
+            <label for="@paymentType.Value">@paymentType.Name</label>
+        </div>
+    }
+
+    <button class="d-inline btn btn-primary" @onclick="() => CompleteOrder()">Complete order</button>
+}
+
+@code {
+    List<Product> products;
+    List<PaymentType> paymentTypes;
+
+    public List<string> Ids { get; set; }
+    public string SelectedOption { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigationManager.ToAbsoluteUri(_navigationManager.Uri);
+        var queryParameters = QueryHelpers.ParseQuery(uri.Query);
+
+        if (queryParameters.TryGetValue("ids", out var ids))
+        {
+            Ids = ids.ToList();
+        }
+
+        products = await apiService.GetProductsByIdsAsync(Ids);
+
+        paymentTypes = new List<PaymentType>
+        {
+            new PaymentType { Name = "Credit card", Value = "Card" },
+            new PaymentType { Name = "Transfer", Value = "Transfer" },
+            new PaymentType { Name = "Cash", Value = "Cash" }
+        };
+    }
+
+    private void OnSelectedOptionChanged(string selectedOption)
+    {
+        SelectedOption = selectedOption;
+    }
+
+    private async Task CompleteOrder()
+    {
+        OrderCreateRequest order = new OrderCreateRequest
+        {
+            Method = SelectedOption,
+                Products = products.Select(p => new OrderProductsRequest
+            {
+                Name = p.Name,
+                UnitPrice = p.UnitPrice
+            })
+        };
+        await apiService.CreateOrderAsync(order);
+        products = await apiService.GetProductsAsync();
+
+        _navigationManager.NavigateTo("/orders");
+    }
+
+    class PaymentType
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+}
